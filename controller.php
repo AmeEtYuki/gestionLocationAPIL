@@ -1,5 +1,8 @@
 <?php
 class Controller {
-    foreach ( glob( './models' . '/*.php' ) as $file ) {require( $file );}
+    public static function connection() {
+        $utilisateur = json_decode($);
+        
+    }
 }
 ?>
