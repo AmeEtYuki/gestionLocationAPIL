@@ -6,7 +6,7 @@ class Token {
         return openssl_random_pseudo_bytes(16, true);
     }
 
-    public static function checkTokenUser($token,$userId){
+    public static function verifyToken($token,$userid){
         $valid = false;
         try{
             $pdo = getPDO();
@@ -15,45 +15,38 @@ class Token {
             $req->bindParam(':tkn', $token , PDO::PARAM_STR);
             $req->execute();
             $res = $req->fetch(PDO::FETCH_ASSOC); 
-            $valid = ($res["Uid"] == $userId);
+            $valid = ($res["Uid"] == $userid); //check ownership
+            if($valid){
+                //check time validity 
+                // now-LastSeen = number of seconds since lastSeen
+                //If this number is greater than a month (in seconds), we disconnect the user
+                if( (time()-$res["LastSeen"])>(60*60*24*30)){
+                    $valid = false;
+                    //DESTROY TOKEN
+                } else {
+                    $valid = true;
+                }
+            }
             
         }catch(Exception $e){
             $valid = false;
         }
-
         return $valid;
     }
 
-    public static function userHasToken($userId){
-        $has = false;
+
+    public static function destroyToken($token){
         try{
             $pdo = getPDO();
-            $sql = "SELECT * FROM authtokens WHERE Uid = :uid";
+            $sql = "DELETE FROM authtokens WHERE Token = :tkn";
             $req = $this->pdo->prepare($sql);
-            $req->bindParam(':uid', $userId , PDO::PARAM_INT);
+            $req->bindParam(':tkn', $token , PDO::PARAM_STR);
             $req->execute();
-            $has = (count($req->fetchAll(PDO::FETCH_ASSOC)) == 1);
-            
-        }catch(Exception $e){
-            $has = false;
-        }
-
-        return $has;
-    }
-
-    public static function deleteTokenFromUser($userId){
-        try{
-            $pdo = getPDO();
-            $sql = "SELECT * FROM authtokens WHERE Uid = :uid";
-            $req = $this->pdo->prepare($sql);
-            $req->bindParam(':uid', $userId , PDO::PARAM_INT);
-            $req->execute();
-            $has = (count($req->fetchAll(PDO::FETCH_ASSOC)) == 1);
-            
         }catch(Exception $e){
             //oopsie
         }
     }
+
 
     public static function createTokenForUser($userId){
         //il faut check s'il en a deja un
