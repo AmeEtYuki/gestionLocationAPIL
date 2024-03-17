@@ -4,15 +4,15 @@ class Utilisateur {
     public function __construct() {
         
     }
-    private static function chargerPDO() {
+    private function chargerPDO() {
         try {
-            $this->$pdo = getPDO();
+            $this->pdo = getPDO();
         } catch (Exception) {
             die("ouille, coup dur pour guillaume.");
         }
     }
     public function connexion($email, $password) {
-        chargerPDO();
+        $this->chargerPDO();
         $prepare=$this->pdo->prepare("SELECT * FROM `user` WHERE `login` = :l");
         $prepare->execute(array(
             ":l"=>$email
@@ -37,11 +37,28 @@ class Utilisateur {
         }
     }
     public static function utilisateurExiste($email) {
-        chargerPDO();
-        $prepare = $this->pdo->prepare("SELECT COUNT(*) FROM user WHERE `login`=:email");
+        $pdo = DBA::db();
+        $prepare = $pdo->prepare("SELECT COUNT(*) FROM user WHERE `login`=:email");
         $prepare->bindParam(':email', $email , PDO::PARAM_INT);
         $prepare->execute();
         $res = $prepare->fetch();
         return (count($res) == 0);
+    }
+    //Retourne en INT l'id de l'utilisateur seulon son identifiant
+    public static function getUserIdByEmail($login) {
+        $pdo = DBA::db();
+        $prepare = $pdo->prepare("SELECT * FROM user WHERE `login`=:leLogin");
+        $prepare->execute(array(
+            ":leLogin"=>$login
+        ));
+        $res = $prepare->fetch();
+        return $res['id'];
+
+    }
+    //Résilie tout les tokens du compte lié au compte (considération du fait qu'on ne connecte qu'une seule application.)
+    public static function deconnexion($token) {
+        $pdo = DBA::db();
+        $userID = Token::getUserID($token);
+        Token::deleteTokenFromUser($userID);
     }
 }

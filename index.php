@@ -24,7 +24,7 @@ foreach ( glob( './models' . '/*.php' ) as $file ) {require( $file );}
 require("./database.php");
 require("./controller.php");
 require("./view.php");
-
+echo "API MVC";
 switch($_GET['action']) {
     case "login":
         (new controller)->connection();

@@ -15,4 +15,16 @@
         global $dbpassword;
         return new PDO($dsn, $dbuser, $dbpassword);
     }
+    class DBA {
+        public static function db() {
+            $data = parse_ini_file("../db.ini");
+            $dbuser = $data["dbuser"];
+            $dbpassword = $data["dbpassword"];
+            $dbdatabase = $data["dbdatabase"];
+            $dbhost = $data["dbhost"];
+            $dbport = $data["dbport"];
+            $dsn = "mysql:host=".$dbhost.";dbname=".$dbdatabase;
+            return new PDO($dsn, $dbuser, $dbpassword);
+        }
+    }
 ?>
