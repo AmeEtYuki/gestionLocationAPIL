@@ -9,7 +9,7 @@ class view {
         include('./views'.$fileName.'.php');
     } 
     function loginInterface($code, $values) {
-        getPage("connection");
+        getPage("login");
     }
     function genericAPIresponse($code, $values) {
         getPage("jsonResponse.php");

@@ -24,14 +24,21 @@ foreach ( glob( './models' . '/*.php' ) as $file ) {require( $file );}
 require("./database.php");
 require("./controller.php");
 require("./view.php");
-echo "API MVC";
-switch($_GET['action']) {
-    case "login":
-        (new controller)->connection();
-        break;
-    case "logout":
-        (new controller)->logout();
-        break;
-    default:
-        http_response_code(404);
+
+//les inputs seront seulement en json (plus tard chiffré )
+$in = json_decode(file_get_contents('php://input'));
+if($in!=null){
+    switch($_GET['action']) {
+        case "login":
+            //on y retrouve que le hash du password
+            (new controller)->connection();
+            break;
+        case "logout":
+            (new controller)->deconnexion();
+            break;
+        default:
+            http_response_code(404);
+    }
+}else {
+    http_response_code(400);
 }
