@@ -1,10 +1,10 @@
 <?php
 class Controller {
-    public static function connection() {
-        $utilisateur = json_decode($_POST['data']);
+    public static function connection($json) {
+        $utilisateur = json_decode($json);
     }
-    public static function deconnexion() {
-        
+    public static function deconnexion($json) {
+
     }
 }
 ?>

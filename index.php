@@ -31,10 +31,10 @@ if($in!=null){
     switch($_GET['action']) {
         case "login":
             //on y retrouve que le hash du password
-            (new controller)->connection();
+            (new controller)->connection($in);
             break;
         case "logout":
-            (new controller)->deconnexion();
+            (new controller)->deconnexion($in);
             break;
         default:
             http_response_code(404);
