@@ -6,7 +6,7 @@ class Token {
         return openssl_random_pseudo_bytes(16, true);
     }
 
-    public static function verifyToken($token,$userid){
+    public static function verifyToken($token){
         $valid = false;
         try{
             $pdo = getPDO();
@@ -15,7 +15,7 @@ class Token {
             $req->bindParam(':tkn', $token , PDO::PARAM_STR);
             $req->execute();
             $res = $req->fetch(PDO::FETCH_ASSOC); 
-            $valid = ($res["Uid"] == $userid); //check ownership
+            //$valid = ($res["Uid"] == $userid); //check ownership
             if($valid){
                 //check time validity 
                 // now - LastSeen = number of seconds since lastSeen
@@ -62,34 +62,35 @@ class Token {
     public static function userHasToken($userId){
         $has = false;
         try{
-            $pdo = getPDO();
             $sql = "SELECT * FROM authtokens WHERE usrId = :usrId";
-            $req = $pdo->prepare($sql);
+            $req = DBA::db()->prepare($sql);
             $req->bindParam(':usrId', $userId , PDO::PARAM_INT);
             $req->execute();
             $has = (count($req->fetchAll(PDO::FETCH_ASSOC)) == 1);
         }catch(Exception $e){
             $has = false;
         }
+        return $has;
     }
     //retourne vide si le token n'existe pas en base, ou renvoie le token si présent dans la base de donnée après activation de la fonction.
     public static function createTokenForUser($userId){
         
         //S'il en a déjà un, je le détruit
         Token::destroyTokenFromUser($userId);
-        /*if(Token::userHasToken($userId)){          
-            //delete
-        }*/
+        /*
+        if(Token::userHasToken($userId)){          
+            delete
+        }
+        */
         //Création d'un token pour un utilisateur donné.
         $token = '';
         $nonExistantToken = false;
         while (!$nonExistantToken) {
             $token = Token::generateToken();
-            $nonExistantToken = Token::verifyToken($token, $userId);
+            $nonExistantToken = Token::verifyToken($token);
         }
         //Token généré et non existant, insertion du token
-        $pdo = getPDO();
-        $req = $pdo->prepare("INSERT INTO `AuthTokens` (`usrId`, `Tkn`, `ConDa`, `LastSeen`, `ClientType`) VALUES 
+        $req = DBA::db()->prepare("INSERT INTO `AuthTokens` (`usrId`, `Tkn`, `ConDa`, `LastSeen`, `ClientType`) VALUES 
         (:id, :token, NOW(), NOW(), 'Mobile')");
         $req->execute(array(
             ':id'=>$userId,
@@ -106,14 +107,18 @@ class Token {
         return $token;
     }
     public static function getUserID($token) {
-        $pdo = getPDO();
-        $req = $pdo->prepare("SELECT * FROM AuthTokens WHERE Tkn = :token;");
-        $req->execute(
-            array(
-                ":token"=>$token
-            )
-        );
-        return $req->fetch()['usrId'];
+        try {
+            $req = DBA::db()->prepare("SELECT * FROM AuthTokens WHERE Tkn = :token;");
+            $req->execute(
+                array(
+                    ":token"=>$token
+                )
+            );
+            return $req->fetch()['usrId'];
+        } catch (Exception $e) {
+            return null;
+        }
+        
     }
 
 }

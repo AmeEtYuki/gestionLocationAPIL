@@ -11,24 +11,17 @@ class Utilisateur {
             die("ouille, coup dur pour guillaume.");
         }
     }
-    public function connexion($email, $password) {
-        $this->chargerPDO();
-        $prepare=$this->pdo->prepare("SELECT * FROM `user` WHERE `login` = :l");
+    public static function connexion($email, $password) {
+        $prepare=DBA::db()->prepare("SELECT * FROM `user` WHERE `login` = :login");
         $prepare->execute(array(
-            ":l"=>$email
+            ":login"=>$email
          ));
-        /*$prepare->bindParam(':l', $email , PDO::PARAM_INT);
-        $prepare->execute();*/
         $res = $prepare->fetch();
         // 0 = ok 1 = mdp/user erroné 2 = il existe pas fréro.
         if(!(count($res) == 0)) {
             if(password_verify($password , $res["password"])) {
-                $_SESSION['userID'] = $res['id'];
-                $_SESSION['userName'] = $res['login'];
-                $_SESSION['usrType'] = $res['type'];
                 return 0;
                 //userID    userName     usrTyp
-                
             } else {
                 return 1;
             }
@@ -36,15 +29,15 @@ class Utilisateur {
             return 2;
         }
     }
-    public static function utilisateurExiste($email) {
+    public static function utilisateurExiste($login) {
         $pdo = DBA::db();
-        $prepare = $pdo->prepare("SELECT COUNT(*) FROM user WHERE `login`=:email");
-        $prepare->bindParam(':email', $email , PDO::PARAM_INT);
+        $prepare = $pdo->prepare("SELECT COUNT(*) FROM user WHERE `login`=:login");
+        $prepare->bindParam(':login', $login , PDO::PARAM_INT);
         $prepare->execute();
         $res = $prepare->fetch();
         return (count($res) == 0);
     }
-    //Retourne en INT l'id de l'utilisateur seulon son identifiant
+    //Retourne en INT l'id de l'utilisateur selon son identifiant
     public static function getUserIdByEmail($login) {
         $pdo = DBA::db();
         $prepare = $pdo->prepare("SELECT * FROM user WHERE `login`=:leLogin");
@@ -55,10 +48,13 @@ class Utilisateur {
         return $res['id'];
 
     }
-    //Résilie tout les tokens du compte lié au compte (considération du fait qu'on ne connecte qu'une seule application.)
+    //Résilie tout les tokens lié au compte (considération du fait qu'on ne connecte qu'une seule application.)
     public static function deconnexion($token) {
         $pdo = DBA::db();
         $userID = Token::getUserID($token);
-        Token::deleteTokenFromUser($userID);
+        Token::destroyTokenFromUser($userID);
+    }
+    public static function isHost($userID) {
+        $prepare = DBA::db()->prepare("SELECT type FROM user WHERE id=:id");
     }
 }

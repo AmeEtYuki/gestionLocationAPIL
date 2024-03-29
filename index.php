@@ -28,6 +28,14 @@ require("./view.php");
 //les inputs seront seulement en json (plus tard chiffré )
 $in = json_decode(file_get_contents('php://input'));
 if($in!=null){
+    //Vérification de si un token est valide pour la requête en cours. Étape passée si l'utilisateur cherche à se connecter. 
+    if(!(new controller)->checkupToken($json) && !$_GET['action']=='login'){
+        http_response_code(498);
+        die();
+    }
+    /*
+        à faire : 
+    */
     switch($_GET['action']) {
         case "login":
             //on y retrouve que le hash du password
@@ -36,9 +44,12 @@ if($in!=null){
         case "logout":
             (new controller)->deconnexion($in);
             break;
+        case "bien":
+            (new controller)->bien($in);
+            break;
         default:
             http_response_code(404);
     }
-}else {
+} else {
     http_response_code(400);
 }
