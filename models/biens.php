@@ -7,4 +7,6 @@ class Bien {
         ));
         return $prepare->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    
 }

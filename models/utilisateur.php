@@ -30,12 +30,16 @@ class Utilisateur {
         }
     }
     public static function utilisateurExiste($login) {
-        $pdo = DBA::db();
-        $prepare = $pdo->prepare("SELECT COUNT(*) FROM user WHERE `login`=:login");
-        $prepare->bindParam(':login', $login , PDO::PARAM_INT);
-        $prepare->execute();
-        $res = $prepare->fetch();
-        return (count($res) == 0);
+        try {
+            $prepare = DBA::db()->prepare("SELECT * FROM user WHERE `login`=:login");
+            $prepare->bindParam(':login', $login , PDO::PARAM_INT);
+            $prepare->execute();
+            $res = $prepare->fetchAll();
+        return (count($res) != 0);
+        } catch (Exception $e) {
+            echo $e;
+        }
+        
     }
     //Retourne en INT l'id de l'utilisateur selon son identifiant
     public static function getUserIdByEmail($login) {
@@ -56,5 +60,31 @@ class Utilisateur {
     }
     public static function isHost($userID) {
         $prepare = DBA::db()->prepare("SELECT type FROM user WHERE id=:id");
+        $prepare->execute(array(
+            ":id"=>$userID
+        ));
+        return ($prepare->fetch(PDO::FETCH_ASSOC)['type']=="Hote");
+    }
+    public static function getNom($userID) {
+        $prepare = DBA::db()->prepare("SELECT nom FROM user WHERE id=:id");
+        $prepare->execute(array(
+            ":id"=>$userID
+        ));
+        return $prepare->fetch(PDO::FETCH_ASSOC)['nom'];
+    }
+    public static function getPrenom($userID) {
+        $prepare = DBA::db()->prepare("SELECT prenom FROM user WHERE id=:id");
+        $prepare->execute(array(
+            ":id"=>$userID
+        ));
+        return $prepare->fetch(PDO::FETCH_ASSOC)['prenom'];
+    }
+    public static function getAllInformations($userID) {
+        $prepare = DBA::db()->prepare("SELECT * FROM user WHERE id=:id");
+        $prepare->execute(array(
+            ":id"=>$userID
+        ));
+        //Erreur::registerError($prepare);
+        return $prepare->fetch(PDO::FETCH_ASSOC);
     }
 }
