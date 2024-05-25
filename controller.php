@@ -29,7 +29,7 @@ class Controller {
         $data = json_decode($json);
         $token = $data->token;
         if(Token::verifyToken($token)) {
-             Token::destroyToken($token);
+            Token::destroyToken($token);
         }
     }
     public function checkupToken($json) {
@@ -63,7 +63,7 @@ class Controller {
         */
         switch ($method) {
             case 'POST':
-                echo json_encode(Photo::getAllPhotosFromBien($data->bienID));
+                //echo json_encode(Photo::getAllPhotosFromBien($data->bienID));
                 http_response_code(200);
                 break;
             default:
@@ -383,7 +383,7 @@ class Controller {
             $idReservation = $data -> idReservation;
             $idPiece = $data -> idPiece;
             $commentaire = $data -> commentaire;
-            $resultat = EtatLieuxSortie::createEtatLieuxPieceCommentaire($idReservation, $idPiece, $commentaire);
+            $resultat = EtatLieuxSortie::createEtatLieuxPiece($idReservation, $idPiece, $commentaire);
             if ($resultat){
                 echo json_encode($resultat);
                 http_response_code(200);
@@ -400,8 +400,19 @@ class Controller {
     }
 
     public static function test(){
-        $prepare = DBA::db()->prepare('SELECT * FROM bien');
-        return $prepare->fetchAll(PDO::FETCH_ASSOC);
+        //fonction testant la capacité de l'api à fonctionner (test simple visant à déterminer si le code est globalement défaillant au niveau de l'api)
+        try {
+            //test de fonction de la base de données. 
+            $bddWorks = DBA::db()->prepare('SELECT * FROM bien limit 10')->execute();
+            $staticJsonToTest = array(
+                "TestValue"=>"ThisValueIsHereToTestAPIGoodCommunications"
+            );
+            echo json_encode($staticJsonToTest);
+            http_response_code(200);
+        } catch (Exception $e) {
+            Erreur::registerError(json_encode(array("message"=>$e->getMessage())));
+            http_response_code(500);
+        }
     }
 
     public function getELDsortie($data) {
@@ -434,6 +445,35 @@ class Controller {
         } catch (Exception $e) {
             Erreur::registerError(json_encode(array("message"=>$e->getMessage())));
             http_response_code(500);
+        }
+    }
+    public function editAccountInformations($data) {
+        try {
+            $data = json_decode($data);
+            $userID = Token::getUserID($data->token);
+            //$code = Utilisateur::connexion($userID, $data->actualPassword ?? "");
+            $code = 0;
+            switch ($code) {
+                case 0: {
+                    $newLogin = $data->login ?? Utilisateur::getAllInformations($userID)["login"];
+                    $newPassword = $data->password ?? Utilisateur::getAllInformations($userID)["password"];
+                    $newNom = $data->nom ?? Utilisateur::getAllInformations($userID)["nom"];
+                    $newPrenom = $data->prenom ?? Utilisateur::getAllInformations($userID)["prenom"];
+                    Utilisateur::editAccount($userID, $newLogin, $newPassword, $newNom, $newPrenom);
+                    echo json_encode(array("message"=>"done"));
+                    http_response_code(200);
+                }
+                case 1: {
+                    http_response_code(401);
+                }
+                case 2: {
+                    http_response_code(418);
+                }
+            }
+        } catch (Exception $e) {
+            Erreur::registerError(json_encode(array("message"=>$e->getMessage())));
+            http_response_code(500);
+            die();
         }
     }
 

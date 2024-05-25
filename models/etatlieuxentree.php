@@ -1,7 +1,6 @@
 <?php
-
 class EtatLieuxEntree{
- 
+
     // creer etat lieux pour une reservation.
     public static function createEtatLieuxEntree($periodeID, $etatLieux){
         try{
@@ -56,8 +55,9 @@ class EtatLieuxEntree{
         $prepare->execute(array(
             ":idUserLocataire"=>$user
         ));
-              
-        return $prepare->fetchAll(PDO::FETCH_ASSOC);
+        $result = $prepare->fetchAll(PDO::FETCH_ASSOC);
+        Erreur::registerError($result);
+        return $result;
     }
 
     //use
@@ -74,17 +74,19 @@ class EtatLieuxEntree{
 
     public static function getReservationsToWriteEDLHote($user){
         $prepare = DBA::db()->prepare('
-        SELECT periodeReserve.*, bien.rue as rue, bien.cp as cp, bien.ville as ville, bien.id as idBien FROM periodeReserve 
-        LEFT JOIN etat_lieux_entree ON periodeReserve.id = etat_lieux_entree.id_reservation 
+        SELECT periodeReserve.*, bien.rue as rue, bien.cp as cp, bien.ville as ville, bien.id as idBien 
+        FROM periodeReserve 
+        LEFT JOIN etat_lieux_entree ON etat_lieux_entree.id_reservation = periodeReserve.id 
         INNER JOIN periodeDispo ON periodeDispo.id = periodeReserve.id_periodeDispo 
         INNER JOIN bien ON bien.id = periodeDispo.id_bien 
-        WHERE bien.id_user = :idUserLocataire AND etat_lieux_entree.id_reservation IS NULL;
+        WHERE bien.id_user = :idUserLocataire AND etat_lieux_entree.id_reservation IS NULL; 
     ');
     $prepare->execute(array(
         ":idUserLocataire"=>$user
     ));
-          
-    return $prepare->fetchAll(PDO::FETCH_ASSOC);
+    $resultat = $prepare->fetchAll(PDO::FETCH_ASSOC);
+    Erreur::registerError($resultat);
+    return $resultat;
     }
     public static function insertEDLGlobalDuLogement($idReservation, $commentaire){
         try {

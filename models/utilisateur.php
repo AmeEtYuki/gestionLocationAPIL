@@ -87,4 +87,23 @@ class Utilisateur {
         //Erreur::registerError($prepare);
         return $prepare->fetch(PDO::FETCH_ASSOC);
     }
+    public static function editAccount($userID, $login, $password, $nom, $prenom) {
+        try {
+            $prepare = DBA::db()->prepare("UPDATE user SET login=:login, password=:password, nom=:nom, prenom=:prenom WHERE id=:id");
+            $executed = $prepare->execute(array(
+                ":login"=>$login,
+                ":password"=>password_hash($password, PASSWORD_BCRYPT),
+                ":nom"=>$nom,
+                ":prenom"=>$prenom,
+                ":id"=>$userID
+            ));
+            Erreur::registerError($prepare);
+            return $executed;
+        } catch (Exception $e) {
+            Erreur::registerError(array("Code"=>500,"Message"=>$e->getMessage()));
+            http_response_code(500);
+            die();
+        }
+        
+    }
 }

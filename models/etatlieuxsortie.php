@@ -1,20 +1,16 @@
 <?php
 
 class EtatLieuxSortie{
-    
-    public static function createEtatLieuxSortie($periodeID, $etatLieuxSortie){
-        //modif à réaliser : ajouter qui a écris l'E
-        
-    }
-
     public static function getForHost($userId) {
         $prepare = DBA::db()->prepare("
             SELECT periodeReserve.*, bien.rue as rue, bien.cp as cp, bien.ville as ville, bien.id as idBien FROM periodeReserve 
-            LEFT JOIN etat_lieux_sortie ON periodeReserve.id = etat_lieux_sortie.id_reservation 
+            LEFT JOIN etat_lieux_sortie ON periodeReserve.id = etat_lieux_sortie.id_reservation
             INNER JOIN periodeDispo ON periodeDispo.id = periodeReserve.id_periodeDispo 
             INNER JOIN bien ON bien.id = periodeDispo.id_bien 
-            WHERE bien.id_user = :idUserLocataire AND etat_lieux_sortie.id_reservation IS NULL;
+            WHERE bien.id_user = :idUserLocataire AND etat_lieux_sortie.id_reservation IS NULL 
         ");
+        // LEFT JOIN etat_lieux_sortie ON periodeReserve.id = etat_lieux_sortie.id_reservation
+        // merde : AND etat_lieux_entree.id_reservation IS NOT NULL;
         $prepare->execute(array(
             ":idUserLocataire"=>$userId
         ));	
@@ -43,7 +39,7 @@ class EtatLieuxSortie{
     public static function createEtatLieuxEquipement($idReservation, $idPiece, $idEquipement ,$note) {
         try {
             $prepare = DBA::db()->prepare("INSERT INTO etat_lieux_sortie (id_reservation, id_piece, id_equipement, date_etat, note) 
-            VALUES (:idReservation, :idPiece, :idEquipement ,CURRENT_TIMESTAMP, :note)');");
+            VALUES (:idReservation, :idPiece, :idEquipement ,CURRENT_TIMESTAMP, :note)");
             $prepare->execute(array(
                 ":idReservation" => $idReservation,
                 ":idPiece" => $idPiece,

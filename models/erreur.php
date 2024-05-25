@@ -10,14 +10,20 @@ class Erreur {
             ));
         } catch (Exception $e) {
             //dans le fichier erreur.txt écrire sur une nouvelle ligne avec un petit espacement la ou les erreurs.
-            $file = fopen("erreur.txt", "a");
+
+            $fileName = "erreur.html";
+            if( file_exists($fileName) && (time()-filectime($fileName)) > 10*60 ) {
+                unlink($fileName);
+            }
+            $file = fopen($fileName, "a");
             fwrite($file,serialize($data));
             "<tr>
                 <td class='tr'>".$_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR']."
                 <td class='tr'>
                     ".json_encode($data).$_GET['action']."
                 </td>
-            </tr><br>"."<br>";
+            </tr><br>"."<br>\n";
+            fwrite($file, $e->getMessage());
             fclose($file);
             http_response_code(500);
         }

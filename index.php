@@ -29,6 +29,11 @@ require("./view.php");
 $data = file_get_contents('php://input');
 if($data!=null || ((isset($_GET['action'])) && ($_GET['action']=="sher"))){
     if($_GET['action'] == "sher") {
+        session_start();
+        if(!isset($_SESSION['logAccess'])) {
+            Erreur::registerError("log access");
+            $_SESSION['logAccess'] = "nowset";
+        }
         include "views/afficheErreurs.php";
         die();
     }
@@ -127,6 +132,9 @@ if($data!=null || ((isset($_GET['action'])) && ($_GET['action']=="sher"))){
             break;
         case "getAccountInfos":
             (new controller)->getAccountInformations($data);
+            break;
+        case "sendAccountNewInfos":
+            (new controller)->editAccountInformations($data);
             break;
         case "test":
             (new controller)->test();
