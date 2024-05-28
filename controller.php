@@ -455,10 +455,11 @@ class Controller {
             $code = 0;
             switch ($code) {
                 case 0: {
-                    $newLogin = $data->login ?? Utilisateur::getAllInformations($userID)["login"];
-                    $newPassword = $data->password ?? Utilisateur::getAllInformations($userID)["password"];
-                    $newNom = $data->nom ?? Utilisateur::getAllInformations($userID)["nom"];
-                    $newPrenom = $data->prenom ?? Utilisateur::getAllInformations($userID)["prenom"];
+                    $actualU = Utilisateur::getAllInformations($userID);
+                    $newLogin = $data->login ?? $actualU["login"];
+                    $newPassword = $data->password ?? $actualU["password"];
+                    $newNom = $data->nom ?? $actualU["nom"];
+                    $newPrenom = $data->prenom ?? $actualU["prenom"];
                     Utilisateur::editAccount($userID, $newLogin, $newPassword, $newNom, $newPrenom);
                     echo json_encode(array("message"=>"done"));
                     http_response_code(200);
